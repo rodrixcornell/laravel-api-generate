@@ -1,23 +1,20 @@
-# rodrix/apigenerate
+# rodrixcornell/apigenerate
 API Rest generator for Laravel Framework.
 Create your api resource in seconds using only your database table name or connection name.
 
 ## Installation
 
 ```bash
-composer require rodrix/apigenerate
+composer require --dev rodrixcornell/apigenerate:dev-master
 ```
 
 Install the service provider:
 
 ```php
-// config/app.php
-'providers' => [
-    ...
-    Rodrix\ApiGenerate\ApiGenerateServiceProvider::class,
-    ...
-];
-```
+// app/Providers/AppServiceProvider.php
+if ($this->app->environment() !== 'production') {
+	$this->app->register(\Rodrixcornell\ApiGenerate\ApiGenerateServiceProvider::class);
+}
 
 ## Usage
 
