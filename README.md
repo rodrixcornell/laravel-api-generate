@@ -5,12 +5,19 @@ Create your api resource in seconds using only your database table name or conne
 ## Installation
 
 ```composer.json
-"repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/rodrixcornell/laravel-api-generate.git"
-    }
-  ],
+  "require-dev": {
+    ...
+    "rodrixcornell/apigenerate": "dev-master",
+    ...
+  },
+  "repositories": [{
+    "type": "vcs",
+    "url": "https://github.com/rodrixcornell/laravel-api-generate.git"
+  }],
+```
+
+```bash
+composer update
 ```
 
 ```bash
