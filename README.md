@@ -15,6 +15,7 @@ Install the service provider:
 if ($this->app->environment() !== 'production') {
 	$this->app->register(\Rodrixcornell\ApiGenerate\ApiGenerateServiceProvider::class);
 }
+```
 
 ## Usage
 
