@@ -1,7 +1,7 @@
 <?php
-namespace Phfoxer\ApiGenerate;
+namespace Rodrixcornell\ApiGenerate;
 
-use Phfoxer\ApiGenerate\DbSettings;
+use Rodrixcornell\ApiGenerate\DbSettings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;

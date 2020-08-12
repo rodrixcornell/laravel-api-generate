@@ -1,13 +1,13 @@
 <?php
 
-namespace Phfoxer\ApiGenerate;
+namespace Rodrixcornell\ApiGenerate;
 
 use Illuminate\Support\ServiceProvider;
 
 class ApiGenerateServiceProvider extends ServiceProvider
 {
     protected $commands = [
-        'Phfoxer\ApiGenerate\ApiGenerate'
+        'Rodrixcornell\ApiGenerate\ApiGenerate'
     ];
 
     /**
