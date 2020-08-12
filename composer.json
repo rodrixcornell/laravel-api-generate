@@ -1,5 +1,5 @@
 {
-    "name": "rodrixcornell/laravel-api-generate",
+    "name": "rodrixcornell/apigenerate",
     "description": "Easy api generate for the Laravel Framework.",
     "keywords": [
         "laravel",
@@ -28,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Rodrix\\ApiGenerate\\": "src"
+            "Rodrixcornell\\ApiGenerate\\": "src"
         }
     }
 }
