@@ -69,14 +69,14 @@ class ApiGenerate extends Command
 
 	private function makeModule($table, $route='0', $module='0', $con=false, $hasRelation = false)
 	{
-		$module = ($module=='0')? 'General' : $module;
+		$module = ($module=='0')? 'Api' : $module;
 		$route  = ($route=='0')? $table : $route;
 
 		$root = app_path().DIRECTORY_SEPARATOR;
 		$app = $root.'Modules'.DIRECTORY_SEPARATOR.$module.DIRECTORY_SEPARATOR;
 
 		if(@mkdir($root.'Modules',0755)){
-			mkdir($root.'Modules'.DIRECTORY_SEPARATOR.'General',0755);
+			mkdir($root.'Modules'.DIRECTORY_SEPARATOR.'Api',0755,true);
 		}
 
 		if (empty($table)) {
@@ -188,7 +188,7 @@ class '.$package.'Controller extends Controller
 		$columns = Schema::getColumnListing($table);
 		$filtersFields = (array) $columns;
 		// exclude laravel fields
-		$filtersFields = array_diff($filtersFields, ["created_at", "updated_at"]);
+		$filtersFields = array_diff($filtersFields, ["created_at", "updated_at", "deleted_at",]);
 		$fields = "";
 		$fields = "'".implode("','",$filtersFields)."'";
 		if (count($columns)==0) {
@@ -217,7 +217,9 @@ class '.$package.' extends Model
 {
 	protected $table = "'.$table.'";
 
-	protected $fillable = ['.$fields.'];
+	protected $fillable = [
+		'.$fields.'
+	];
 
 	'.$relations.'
 }';
@@ -242,7 +244,7 @@ $this->dbSettings = new DbSettings();
 $tableProp = $this->dbSettings->getTableProp($table);
 $Validator = '$validator = Validator::make($request->all(), [';
 foreach ($tableProp as $prop) {
-	if(!in_array($prop[0]['name'], ["id","created_at", "updated_at"])){
+	if(!in_array($prop[0]['name'], ["id","created_at", "updated_at", "deleted_at",])){
 		$Validator .= '
 			"'.$prop[0]['name'].'"=>"'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
 	}
@@ -310,9 +312,9 @@ $filters = "";
 foreach ($filtersFields as $field) {
 	if(!in_array($field,['created_at','updated_at'])){
 		$filters .= '
-	if ($request->'.$field.') {
-		$queryBuilder->where("'.$field.'","=",$request->'.$field.');
-	}
+		if ($request->'.$field.') {
+			$queryBuilder->where("'.$field.'","=",$request->'.$field.');
+		}
 ';
 	}
 }
@@ -326,7 +328,7 @@ class '.$package.'SearchRepository
 {
 	public function search($queryBuilder, $request)
 	{
-			'.$filters.'
+		'.$filters.'
 
 		if ($request->order) {
 			$order = ($request->order == "asc") ? "asc" : "desc";
@@ -346,9 +348,9 @@ class '.$package.'SearchRepository
 
 	if(@mkdir($mod,0755)){
 		// Directories: Models | Controlers | Repositories
-		mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755);
-		mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755);
-		mkdir($mod.DIRECTORY_SEPARATOR.'Repositories',0755);
+		mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755,true);
+		mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755,true);
+		mkdir($mod.DIRECTORY_SEPARATOR.'Repositories',0755,true);
 		// Archives: Models | Controlers | Repositories
 		$model = str_replace('/',"\\",$model);
 		$controller = str_replace('/',"\\",$controller);
@@ -427,7 +429,7 @@ Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
 		if(empty($model) && $all===true){
 			$package = $this->setPackage($table);
 			// Alternative model
-			$model = "App\Modules\General\\$package\Models\\$package";
+			$model = "App\Modules\Api\\$package\Models\\$package";
 		}
 
 		$table_exists = Schema::getColumnListing($table);
