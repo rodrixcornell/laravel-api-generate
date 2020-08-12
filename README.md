@@ -12,8 +12,11 @@ Install the service provider:
 
 ```php
 // app/Providers/AppServiceProvider.php
-if ($this->app->environment() !== 'production') {
-	$this->app->register(\Rodrixcornell\ApiGenerate\ApiGenerateServiceProvider::class);
+public function register()
+{
+	if ($this->app->environment() !== 'production') {
+		$this->app->register(\Rodrixcornell\ApiGenerate\ApiGenerateServiceProvider::class);
+	}
 }
 ```
 
