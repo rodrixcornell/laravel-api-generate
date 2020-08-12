@@ -1,11 +1,11 @@
-# phfoxer/apigenerate
+# rodrix/apigenerate
 API Rest generator for Laravel Framework.
 Create your api resource in seconds using only your database table name or connection name.
 
 ## Installation
 
 ```bash
-composer require phfoxer/apigenerate
+composer require rodrix/apigenerate
 ```
 
 Install the service provider:
@@ -14,7 +14,7 @@ Install the service provider:
 // config/app.php
 'providers' => [
     ...
-    Phfoxer\ApiGenerate\ApiGenerateServiceProvider::class,
+    Rodrix\ApiGenerate\ApiGenerateServiceProvider::class,
     ...
 ];
 ```
@@ -34,7 +34,7 @@ php artisan generate:api --table=table_name --relation=true
 ```
 You can see result in http://localhost:8000/api/table_name
 You can find your new resource in app/Modules/General.
-General is the default 
+General is the default
 ### Params
 
 To define route:

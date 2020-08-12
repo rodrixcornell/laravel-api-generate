@@ -1,5 +1,5 @@
 {
-    "name": "phfoxer/apigenerate",
+    "name": "rodrixcornell/laravel-api-generate",
     "description": "Easy api generate for the Laravel Framework.",
     "keywords": [
         "laravel",
@@ -9,13 +9,17 @@
         "artisan",
         "generate api"
     ],
-    "homepage": "http://github.com/phfoxer/apigenerate",
+    "homepage": "http://github.com/rodrixcornell/laravel-api-generate",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
             "name": "Paulo Santos",
             "email": "paulohs.dev@gmail.com"
+        },
+        {
+            "name": "Rodrigo Cabral",
+            "email": "rodrixcornell@gmail.com"
         }
     ],
     "require": {
@@ -24,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Phfoxer\\ApiGenerate\\": "src"
+            "Rodrix\\ApiGenerate\\": "src"
         }
     }
 }
