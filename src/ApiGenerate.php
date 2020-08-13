@@ -311,11 +311,11 @@ class '.$package.'Repository
 $filters = "";
 foreach ($filtersFields as $field) {
 	if(!in_array($field,['created_at','updated_at'])){
-		$filters .= '
-		if ($request->'.$field.') {
+		$filters .= 'if ($request->'.$field.') {
 			$queryBuilder->where("'.$field.'","=",$request->'.$field.');
 		}
-';
+
+		';
 	}
 }
 
@@ -328,9 +328,7 @@ class '.$package.'SearchRepository
 {
 	public function search($queryBuilder, $request)
 	{
-		'.$filters.'
-
-		if ($request->order) {
+'.$filters.'if ($request->order) {
 			$order = ($request->order == "asc") ? "asc" : "desc";
 			$queryBuilder->orderBy("'.$id.'", $order);
 		}
@@ -373,8 +371,7 @@ class '.$package.'SearchRepository
 		// Criando rotas
 		$path_route = base_path().DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'api.php';
 		$base_package = str_replace('/',"\\",$base.$package);
-$routes =
-'
+		$routes ='
 /**
 * Module '.$package.'
 */
