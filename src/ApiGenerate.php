@@ -5,6 +5,7 @@ use Rodrixcornell\ApiGenerate\DbSettings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class ApiGenerate extends Command
 {
@@ -93,7 +94,9 @@ class ApiGenerate extends Command
 		}else {
 			$module = 'Modules';
 		}
-		$package = $this->setPackage($table);
+		$singular = Str::of($table)->singular();
+
+		$package = $this->setPackage($singular);
 
 		$packageLower = strtolower($package);
 $controller = '<?php
