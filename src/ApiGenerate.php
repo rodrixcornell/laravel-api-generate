@@ -215,10 +215,41 @@ class '.$package.'Controller extends Controller
 namespace App\\'.$module.'\\'.$package.'\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class '.$package.' extends Model
 {
+	use Notifiable;
+
+	/**
+	 * The table associated with the model.
+	 *
+	 * @var string
+	 */
 	protected $table = "'.$table.'";
+
+	/**
+	 * The primary key associated with the table.
+	 *
+	 * @var string
+	 */
+	protected $primaryKey = \'id\';
+
+	/**
+	 * Indicates if the IDs are auto-incrementing.
+	 *
+	 * @var bool
+	 */
+	public $incrementing = true;
+
+	/**
+	 * Opcional, informar a coluna deleted_at como um Mutator de data
+	 *
+	 * @var array
+	 */
+	protected $dates = [
+		\'created_at\', \'updated_at\',
+	];
 
 	protected $fillable = [
 		'.$fields.'
