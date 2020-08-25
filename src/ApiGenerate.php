@@ -263,7 +263,7 @@ $dbFieldsTxt = '$data = [';
 foreach ($filtersFields as $field) {
 	if(!in_array($field,['id'])){
 		$dbFieldsTxt .= '
-			"'.$field.'"=>$request->'.$field.',';
+			"'.$field.'" => $request->'.$field.',';
 	}
 }
 $dbFieldsTxt .= '
@@ -280,7 +280,7 @@ $Validator = '$validator = Validator::make($request->all(), [';
 foreach ($tableProp as $prop) {
 	if(!in_array($prop[0]['name'], ["id","created_at", "updated_at", "deleted_at",])){
 		$Validator .= '
-			"'.$prop[0]['name'].'"=>"'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
+			"'.$prop[0]['name'].'" => "'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
 	}
 }
 $Validator .= '
