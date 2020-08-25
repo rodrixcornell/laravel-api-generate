@@ -98,13 +98,15 @@ class ApiGenerate extends Command
 
 		$package = $this->setPackage($singular);
 
+		$packageUcWords = ucwords($table);
+
 		$packageLower = strtolower($package);
-$controller = '<?php
+		$controller = '<?php
 namespace App\\'.$module.'\\'.$package.'\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\\'.$module.'\\'.$package.'\Repositories\\'.$package.'Repository;
+use App\\'.$module.'\\'.$packageUcWords.'\Repositories\\'.$package.'Repository;
 
 class '.$package.'Controller extends Controller
 {
@@ -122,7 +124,7 @@ class '.$package.'Controller extends Controller
 		} catch(\Exception $e){
 			$data = [
 				"message"=> "Error, try again!",
-				"text"=>    $e->getMessage()
+				"text"=> $e->getMessage()
 			];
 			return response()->json($data, 401);
 		}
@@ -136,7 +138,7 @@ class '.$package.'Controller extends Controller
 		} catch(\Exception $e){
 			$data = [
 				"message"=> "Error, try again!",
-				"text"=>    $e->getMessage()
+				"text"=> $e->getMessage()
 			];
 			return response()->json($data, 400);
 		}
@@ -151,7 +153,7 @@ class '.$package.'Controller extends Controller
 			$data = [
 				"message"=> "Error, try again!",
 				"code" => $e->getCode(),
-				"text "=>    $e->getMessage()
+				"text "=> $e->getMessage()
 			];
 			return response()->json($data, 400);
 		}
@@ -166,7 +168,7 @@ class '.$package.'Controller extends Controller
 			$data = [
 				"message" => "Error, try again!",
 				 "code" => $e->getCode(),
-				"text" =>    $e->getMessage()
+				"text" => $e->getMessage()
 			];
 			return response()->json($data, 400);
 		}
@@ -180,12 +182,11 @@ class '.$package.'Controller extends Controller
 		} catch(\Exception $e){
 			$data = [
 				"message"=> "Error, try again!",
-				"text"=>    $e->getMessage()
+				"text"=> $e->getMessage()
 			];
 			return response()->json($data, 400);
 		}
 	}
-
 }';
 		# get list of fields
 		$columns = Schema::getColumnListing($table);
@@ -212,7 +213,7 @@ class '.$package.'Controller extends Controller
 			}
 		}
 		$model = '<?php
-namespace App\\'.$module.'\\'.$package.'\Models;
+namespace App\\'.$module.'\\'.$packageUcWords.'\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
@@ -258,39 +259,38 @@ class '.$package.' extends Model
 	'.$relations.'
 }';
 
-// Fields array
-$dbFieldsTxt = '$data = [';
-foreach ($filtersFields as $field) {
-	if(!in_array($field,['id'])){
-		$dbFieldsTxt .= '
-			"'.$field.'" => $request->'.$field.',';
-	}
-}
-$dbFieldsTxt .= '
-			];';
+		// Fields array
+		$dbFieldsTxt = '$data = [';
+		foreach ($filtersFields as $field) {
+			if(!in_array($field,['id'])){
+				$dbFieldsTxt .= '
+					"'.$field.'" => $request->'.$field.',';
+			}
+		}
+		$dbFieldsTxt .= '];';
 
-	$allRelations ='';
-	if(!empty($with)){
-		$allRelations = '"'.implode('","',$with).'"';
-	}
-// Validator
-$this->dbSettings = new DbSettings();
-$tableProp = $this->dbSettings->getTableProp($table);
-$Validator = '$validator = Validator::make($request->all(), [';
-foreach ($tableProp as $prop) {
-	if(!in_array($prop[0]['name'], ["id","created_at", "updated_at", "deleted_at",])){
-		$Validator .= '
-			"'.$prop[0]['name'].'" => "'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
-	}
-}
-$Validator .= '
-		]);';
+		$allRelations ='';
+		if(!empty($with)){
+			$allRelations = '"'.implode('","',$with).'"';
+		}
+
+		// Validator
+		$this->dbSettings = new DbSettings();
+		$tableProp = $this->dbSettings->getTableProp($table);
+		$Validator = '$validator = Validator::make($request->all(), [';
+		foreach ($tableProp as $prop) {
+			if(!in_array($prop[0]['name'], ["id","created_at", "updated_at", "deleted_at",])) {
+				$Validator .= '
+					"'.$prop[0]['name'].'" => "'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
+			}
+		}
+		$Validator .= ']);';
 
 $repository = '<?php
-namespace App\\'.$module.'\\'.$package.'\Repositories;
+namespace App\\'.$module.'\\'.$packageUcWords.'\Repositories;
 
-use App\\'.$module.'\\'.$package.'\Models\\'.$package.';
-use App\\'.$module.'\\'.$package.'\Repositories\\'.$package.'SearchRepository;
+use App\\'.$module.'\\'.$packageUcWords.'\Models\\'.$package.';
+use App\\'.$module.'\\'.$packageUcWords.'\Repositories\\'.$package.'SearchRepository;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
@@ -308,7 +308,11 @@ class '.$package.'Repository
 
 	public function show($id)
 	{
-		return '.$package.'::where(["id"=>$id])->first();
+		// return '.$package.'::where(["id" => $id])->first();
+		if (!is_numeric($id)) abort(400, "ID \"$id\" invalido.");
+		'.$packageLower.' = '.$package.'::findOrFail($id);
+
+		return '.$packageLower.';
 	}
 
 	public function store($request)
@@ -329,40 +333,37 @@ class '.$package.'Repository
 			throw new \Exception("invalid_fields",400);
 		} else {
 			'.$dbFieldsTxt.'
-			return '.$package.'::where(["id"=>$id])->update($data);
+			return '.$package.'::where(["id" => $id])->update($data);
 		}
 	}
 
 	public function destroy($id)
 	{
-		return '.$package.'::where(["id"=>$id])->delete();
+		return '.$package.'::where(["id" => $id])->delete();
 	}
-
 }';
 
-//
-
-$filters = "";
-foreach ($filtersFields as $field) {
-	if(!in_array($field,['created_at','updated_at'])){
-		$filters .= 'if ($request->'.$field.') {
-			$queryBuilder->where("'.$field.'","=",$request->'.$field.');
+		$filters = "";
+		foreach ($filtersFields as $field) {
+			if(!in_array($field,['created_at','updated_at','deleted_at'])){
+				$filters .= 'if ($request->'.$field.') {
+			$queryBuilder->where("'.$field.'", "=", $request->'.$field.');
 		}
 
 		';
-	}
-}
+			}
+		}
 
-$id = (isset($filtersFields[0])) ? $filtersFields[0] : 'id';
+		$id = (isset($filtersFields[0])) ? $filtersFields[0] : 'id';
 
-$repositorySearch = '<?php
-namespace App\\'.$module.'\\'.$package.'\Repositories;
+		$repositorySearch = '<?php
+namespace App\\'.$module.'\\'.$packageUcWords.'\Repositories;
 
 class '.$package.'SearchRepository
 {
 	public function search($queryBuilder, $request)
 	{
-'.$filters.'if ($request->order) {
+	'.$filters.'if ($request->order) {
 			$order = ($request->order == "asc") ? "asc" : "desc";
 			$queryBuilder->orderBy("'.$id.'", $order);
 		}
@@ -372,50 +373,48 @@ class '.$package.'SearchRepository
 }';
 // dd($repositorySearch);
 
-	if (!is_dir($app)) {
-		$this->info('The module '.$module.' not exists');
-		die;
-	}
-	$mod = $app.$package;
+		if (!is_dir($app)) {
+			$this->info('The module '.$module.' not exists');
+			die;
+		}
+		$mod = $app.$package;
 
-	if(@mkdir($mod,0755)){
-		// Directories: Models | Controlers | Repositories
-		mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755,true);
-		mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755,true);
-		mkdir($mod.DIRECTORY_SEPARATOR.'Repositories',0755,true);
-		// Archives: Models | Controlers | Repositories
-		$model = str_replace('/',"\\",$model);
-		$controller = str_replace('/',"\\",$controller);
-		$repository = str_replace('/',"\\",$repository);
-		$repositorySearch = str_replace('/',"\\",$repositorySearch);
-		File::put($mod.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.$package.'.php', $model);
-		File::put($mod.DIRECTORY_SEPARATOR.'Controllers'.DIRECTORY_SEPARATOR.$package.'Controller.php', $controller);
-		File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'Repository.php', $repository);
-		File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'SearchRepository.php', $repositorySearch);
-		//
-		$this->info('The module '.$package.' has created!');
-		$this->info('check in '.$mod);
-	} else {
-		$this->info('The package '.$package.' already exists!');
-	}
+		if(@mkdir($mod,0755)) {
+			// Directories: Models | Controlers | Repositories
+			mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755,true);
+			mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755,true);
+			mkdir($mod.DIRECTORY_SEPARATOR.'Repositories',0755,true);
+			// Archives: Models | Controlers | Repositories
+			$model = str_replace('/',"\\",$model);
+			$controller = str_replace('/',"\\",$controller);
+			$repository = str_replace('/',"\\",$repository);
+			$repositorySearch = str_replace('/',"\\",$repositorySearch);
+			File::put($mod.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.$package.'.php', $model);
+			File::put($mod.DIRECTORY_SEPARATOR.'Controllers'.DIRECTORY_SEPARATOR.$package.'Controller.php', $controller);
+			File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'Repository.php', $repository);
+			File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'SearchRepository.php', $repositorySearch);
+			//
+			$this->info('The module '.$package.' has created!');
+			$this->info('check in '.$mod);
+		} else {
+			$this->info('The package '.$package.' already exists!');
+		}
 
-	if ($route) {
-		$base = '\App\\'.$module.'\\';
-		$ctrl = $package."Controller";
-		// Criando rotas
-		$path_route = base_path().DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'api.php';
-		$base_package = str_replace('/',"\\",$base.$package);
-		$routes ='
+		if ($route) {
+			$base = '\App\\'.$module.'\\';
+			$ctrl = $package."Controller";
+			// Criando rotas
+			$path_route = base_path().DIRECTORY_SEPARATOR.'routes'.DIRECTORY_SEPARATOR.'api.php';
+			$base_package = str_replace('/',"\\",$base.$package);
+			$routes ='
 /**
 * Module '.$package.'
 */
 Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
 //
-		File::append($path_route, $routes);
-		$this->info('Routes created!');
-	}
-
-
+			// File::append($path_route, $routes);
+			$this->info('Routes created!');
+		}
 	}
 
 	private function findModels($module, $field, $all = true)
@@ -460,7 +459,7 @@ Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
 		if(empty($model) && $all===true){
 			$package = $this->setPackage($table);
 			// Alternative model
-			$model = "App\Modules\Api\\$package\Models\\$package";
+			$model = "App\Modules\Api\\$packageUcWords\Models\\$package";
 		}
 
 		$table_exists = Schema::getColumnListing($table);
