@@ -98,7 +98,7 @@ class ApiGenerate extends Command
 
 		$package = $this->setPackage($singular);
 
-		$packageUcWords = ucwords($table);
+		$packageUcWords = ucwords($table, "_");
 
 		$packageLower = strtolower($package);
 		$controller = '<?php
@@ -194,7 +194,7 @@ class '.$package.'Controller extends Controller
 		// exclude laravel fields
 		$filtersFields = array_diff($filtersFields, ["created_at", "updated_at", "deleted_at",]);
 		$fields = "";
-		$fields = "'".implode("','",$filtersFields)."'";
+		$fields = "'".implode("', '",$filtersFields)."'";
 		if (count($columns)==0) {
 			echo "The table ".$table." not exists!";
 			die;
@@ -264,14 +264,15 @@ class '.$package.' extends Model
 		foreach ($filtersFields as $field) {
 			if(!in_array($field,['id'])){
 				$dbFieldsTxt .= '
-					"'.$field.'" => $request->'.$field.',';
+			"'.$field.'" => $request->'.$field.',';
 			}
 		}
-		$dbFieldsTxt .= '];';
+		$dbFieldsTxt .= '
+	];';
 
 		$allRelations ='';
 		if(!empty($with)){
-			$allRelations = '"'.implode('","',$with).'"';
+			$allRelations = '"'.implode('", "', $with).'"';
 		}
 
 		// Validator
@@ -309,8 +310,8 @@ class '.$package.'Repository
 	public function show($id)
 	{
 		// return '.$package.'::where(["id" => $id])->first();
-		if (!is_numeric($id)) abort(400, "ID \"$id\" invalido.");
-		'.$packageLower.' = '.$package.'::findOrFail($id);
+		// if (!is_numeric($id)) abort(400, "ID \"$id\" invalido.");
+		$'.$packageLower.' = '.$package.'::findOrFail($id);
 
 		return '.$packageLower.';
 	}
@@ -363,7 +364,7 @@ class '.$package.'SearchRepository
 {
 	public function search($queryBuilder, $request)
 	{
-	'.$filters.'if ($request->order) {
+		'.$filters.'if ($request->order) {
 			$order = ($request->order == "asc") ? "asc" : "desc";
 			$queryBuilder->orderBy("'.$id.'", $order);
 		}
@@ -458,8 +459,9 @@ Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
 
 		if(empty($model) && $all===true){
 			$package = $this->setPackage($table);
+			$packageUcWords = ucwords($table, "_");
 			// Alternative model
-			$model = "App\Modules\Api\\$packageUcWords\Models\\$package";
+			$model = "Api\\$packageUcWords\Models\\$package";
 		}
 
 		$table_exists = Schema::getColumnListing($table);
