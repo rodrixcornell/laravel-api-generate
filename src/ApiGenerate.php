@@ -73,10 +73,16 @@ class ApiGenerate extends Command
 		$module = ($module=='0')? 'Api' : $module;
 		$route  = ($route=='0')? $table : $route;
 
+		$singular = Str::of($table)->singular();
+		$package = $this->setPackage($singular);
+		$packageUcWords = $this->setPackage($table);
+		$packageLower = strtolower($package);
+
 		$root = app_path().DIRECTORY_SEPARATOR;
 		$app = $root.'Modules'.DIRECTORY_SEPARATOR.$module.DIRECTORY_SEPARATOR;
+		// $app = $root.'Modules'.DIRECTORY_SEPARATOR.$packageUcWords.DIRECTORY_SEPARATOR;
 
-		if(@mkdir($root.'Modules',0755)){
+		if(@mkdir($root.'Modules',0755,true)){
 			mkdir($root.'Modules'.DIRECTORY_SEPARATOR.'Api',0755,true);
 		}
 
@@ -94,15 +100,9 @@ class ApiGenerate extends Command
 		}else {
 			$module = 'Modules';
 		}
-		$singular = Str::of($table)->singular();
 
-		$package = $this->setPackage($singular);
-
-		$packageUcWords = ucwords($table, "_");
-
-		$packageLower = strtolower($package);
 		$controller = '<?php
-namespace App\\'.$module.'\\'.$package.'\Controllers;
+namespace App\\'.$module.'\\'.$packageUcWords.'\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -217,39 +217,27 @@ namespace App\\'.$module.'\\'.$packageUcWords.'\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class '.$package.' extends Model
 {
 	use Notifiable;
+	use SoftDeletes;
 
-	/**
-	 * The table associated with the model.
-	 *
-	 * @var string
-	 */
-	protected $table = "'.$table.'";
+	protected $table = \''.$table.'\';
 
-	/**
-	 * The primary key associated with the table.
-	 *
-	 * @var string
-	 */
 	protected $primaryKey = \'id\';
 
-	/**
-	 * Indicates if the IDs are auto-incrementing.
-	 *
-	 * @var bool
-	 */
 	public $incrementing = true;
 
-	/**
-	 * Opcional, informar a coluna deleted_at como um Mutator de data
-	 *
-	 * @var array
-	 */
+	protected $softDelete = true;
+
 	protected $dates = [
-		\'created_at\', \'updated_at\',
+		\'created_at\', \'updated_at\',  \'deleted_at\',
+	];
+
+	protected $guarded = [
+		\'id\', \'created_at\', \'updated_at\', \'deleted_at\',
 	];
 
 	protected $fillable = [
@@ -264,11 +252,11 @@ class '.$package.' extends Model
 		foreach ($filtersFields as $field) {
 			if(!in_array($field,['id'])){
 				$dbFieldsTxt .= '
-			"'.$field.'" => $request->'.$field.',';
+				"'.$field.'" => $request->'.$field.',';
 			}
 		}
 		$dbFieldsTxt .= '
-	];';
+			];';
 
 		$allRelations ='';
 		if(!empty($with)){
@@ -282,10 +270,11 @@ class '.$package.' extends Model
 		foreach ($tableProp as $prop) {
 			if(!in_array($prop[0]['name'], ["id","created_at", "updated_at", "deleted_at",])) {
 				$Validator .= '
-					"'.$prop[0]['name'].'" => "'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
+			"'.$prop[0]['name'].'" => "'.(($prop[0]['nullable']=='no')? 'required' : 'nullable' ).'",';
 			}
 		}
-		$Validator .= ']);';
+		$Validator .= '
+		]);';
 
 $repository = '<?php
 namespace App\\'.$module.'\\'.$packageUcWords.'\Repositories;
@@ -309,11 +298,10 @@ class '.$package.'Repository
 
 	public function show($id)
 	{
-		// return '.$package.'::where(["id" => $id])->first();
-		// if (!is_numeric($id)) abort(400, "ID \"$id\" invalido.");
 		$'.$packageLower.' = '.$package.'::findOrFail($id);
 
-		return '.$packageLower.';
+		return $'.$packageLower.';
+		return '.$package.'::where(["id" => $id])->first();
 	}
 
 	public function store($request)
@@ -378,9 +366,10 @@ class '.$package.'SearchRepository
 			$this->info('The module '.$module.' not exists');
 			die;
 		}
-		$mod = $app.$package;
+		// $mod = $app.$package;
+		$mod = $app.$packageUcWords;
 
-		if(@mkdir($mod,0755)) {
+		if(@mkdir($mod,0755,true)) {
 			// Directories: Models | Controlers | Repositories
 			mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755,true);
 			mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755,true);
@@ -412,7 +401,7 @@ class '.$package.'SearchRepository
 * Module '.$package.'
 */
 Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
-//
+
 			// File::append($path_route, $routes);
 			$this->info('Routes created!');
 		}
@@ -474,7 +463,7 @@ Route::apiResource("'.$route.'","'.$base_package.'\Controllers\\'.$ctrl.'");';
 	}
 
 	private function setPackage($table){
-		$package = ucfirst($table);
+		$package = ucwords($table);
 		if(substr_count($table, '_')){
 			$split = explode('_',$table);
 			$package = '';
