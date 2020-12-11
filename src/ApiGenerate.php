@@ -73,7 +73,9 @@ class ApiGenerate extends Command
 		$module = ($module=='0')? 'Api' : $module;
 		$route  = ($route=='0')? $table : $route;
 
-		$singular = Str::of($table)->singular();
+		// $singular = Str::of($table)->singular();
+		// php 7.0
+		$singular = str_singular($table);
 		$package = $this->setPackage($singular);
 		$packageUcWords = $this->setPackage($table);
 		$packageLower = strtolower($package);
@@ -106,20 +108,20 @@ namespace App\\'.$module.'\\'.$packageUcWords.'\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\\'.$module.'\\'.$packageUcWords.'\Repositories\\'.$package.'Repository;
+use App\\'.$module.'\\'.$packageUcWords.'\Services\\'.$package.'Service;
 
 class '.$package.'Controller extends Controller
 {
-	private $'.$packageLower.'Repository;
+	private $'.$packageLower.'Service;
 
-	function __construct('.$package.'Repository $'.$packageLower.'Repository ){
-		$this->'.$packageLower.'Repository = $'.$packageLower.'Repository;
+	function __construct('.$package.'Service $'.$packageLower.'Service ){
+		$this->'.$packageLower.'Service = $'.$packageLower.'Service;
 	}
 
 	public function index(Request $request)
 	{
 		try {
-			$data =  $this->'.$packageLower.'Repository->index($request);
+			$data =  $this->'.$packageLower.'Service->index($request);
 			return response()->json($data, 200);
 		} catch(\Exception $e){
 			$data = [
@@ -133,7 +135,7 @@ class '.$package.'Controller extends Controller
 	public function show($id)
 	{
 		try {
-			$data = $this->'.$packageLower.'Repository->show($id);
+			$data = $this->'.$packageLower.'Service->show($id);
 			return response()->json($data, 200);
 		} catch(\Exception $e){
 			$data = [
@@ -147,7 +149,7 @@ class '.$package.'Controller extends Controller
 	public function store(Request $request)
 	{
 		try {
-			$data = $this->'.$packageLower.'Repository->store($request);
+			$data = $this->'.$packageLower.'Service->store($request);
 			return response()->json($data, 200);
 		} catch(\Exception $e){
 			$data = [
@@ -162,7 +164,7 @@ class '.$package.'Controller extends Controller
 	public function update(Request $request, $id)
 	{
 		try {
-			$data = $this->'.$packageLower.'Repository->update($request, $id);
+			$data = $this->'.$packageLower.'Service->update($request, $id);
 			return response()->json($data, 200);
 		} catch(\Exception $e){
 			$data = [
@@ -177,7 +179,7 @@ class '.$package.'Controller extends Controller
 	public function destroy($id)
 	{
 		try {
-			$data = $this->'.$packageLower.'Repository->destroy($id);
+			$data = $this->'.$packageLower.'Service->destroy($id);
 			return response()->json($data, 200);
 		} catch(\Exception $e){
 			$data = [
@@ -276,24 +278,24 @@ class '.$package.' extends Model
 		$Validator .= '
 		]);';
 
-$repository = '<?php
-namespace App\\'.$module.'\\'.$packageUcWords.'\Repositories;
+$Service = '<?php
+namespace App\\'.$module.'\\'.$packageUcWords.'\Services;
 
 use App\\'.$module.'\\'.$packageUcWords.'\Models\\'.$package.';
-use App\\'.$module.'\\'.$packageUcWords.'\Repositories\\'.$package.'SearchRepository;
+use App\\'.$module.'\\'.$packageUcWords.'\Services\\'.$package.'SearchService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
-class '.$package.'Repository
+class '.$package.'Service
 {
-	private $'.$packageLower.'SearchRepository;
-	function __construct('.$package.'SearchRepository $'.$packageLower.'SearchRepository) {
-		$this->'.$packageLower.'SearchRepository = $'.$packageLower.'SearchRepository;
+	private $'.$packageLower.'SearchService;
+	function __construct('.$package.'SearchService $'.$packageLower.'SearchService) {
+		$this->'.$packageLower.'SearchService = $'.$packageLower.'SearchService;
 	}
 
 	public function index(Request $request)
 	{
-		return $this->'.$packageLower.'SearchRepository->search('.$package.'::with(['.$allRelations.']), $request);
+		return $this->'.$packageLower.'SearchService->search('.$package.'::with(['.$allRelations.']), $request);
 	}
 
 	public function show($id)
@@ -345,10 +347,10 @@ class '.$package.'Repository
 
 		$id = (isset($filtersFields[0])) ? $filtersFields[0] : 'id';
 
-		$repositorySearch = '<?php
-namespace App\\'.$module.'\\'.$packageUcWords.'\Repositories;
+		$ServiceSearch = '<?php
+namespace App\\'.$module.'\\'.$packageUcWords.'\Services;
 
-class '.$package.'SearchRepository
+class '.$package.'SearchService
 {
 	public function search($queryBuilder, $request)
 	{
@@ -360,7 +362,7 @@ class '.$package.'SearchRepository
 		return $queryBuilder->paginate(($request->count) ? $request->count : 20);
 	}
 }';
-// dd($repositorySearch);
+// dd($ServiceSearch);
 
 		if (!is_dir($app)) {
 			$this->info('The module '.$module.' not exists');
@@ -370,19 +372,19 @@ class '.$package.'SearchRepository
 		$mod = $app.$packageUcWords;
 
 		if(@mkdir($mod,0755,true)) {
-			// Directories: Models | Controlers | Repositories
+			// Directories: Models | Controlers | Services
 			mkdir($mod.DIRECTORY_SEPARATOR.'Models',0755,true);
 			mkdir($mod.DIRECTORY_SEPARATOR.'Controllers',0755,true);
-			mkdir($mod.DIRECTORY_SEPARATOR.'Repositories',0755,true);
-			// Archives: Models | Controlers | Repositories
+			mkdir($mod.DIRECTORY_SEPARATOR.'Services',0755,true);
+			// Archives: Models | Controlers | Services
 			$model = str_replace('/',"\\",$model);
 			$controller = str_replace('/',"\\",$controller);
-			$repository = str_replace('/',"\\",$repository);
-			$repositorySearch = str_replace('/',"\\",$repositorySearch);
+			$Service = str_replace('/',"\\",$Service);
+			$ServiceSearch = str_replace('/',"\\",$ServiceSearch);
 			File::put($mod.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.$package.'.php', $model);
 			File::put($mod.DIRECTORY_SEPARATOR.'Controllers'.DIRECTORY_SEPARATOR.$package.'Controller.php', $controller);
-			File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'Repository.php', $repository);
-			File::put($mod.DIRECTORY_SEPARATOR.'Repositories'.DIRECTORY_SEPARATOR.$package.'SearchRepository.php', $repositorySearch);
+			File::put($mod.DIRECTORY_SEPARATOR.'Services'.DIRECTORY_SEPARATOR.$package.'Service.php', $Service);
+			File::put($mod.DIRECTORY_SEPARATOR.'Services'.DIRECTORY_SEPARATOR.$package.'SearchService.php', $ServiceSearch);
 			//
 			$this->info('The module '.$package.' has created!');
 			$this->info('check in '.$mod);
