@@ -20,22 +20,27 @@ class DbSettings {
 			$this->driverName = DB::getDriverName();
 		}
 	}
+
 	// get all tables
 	private function mysql(){
 		$this->tables = DB::connection($this->conn)->select('SHOW TABLES');
 	}
+
 	// get all tables
 	private function pgsql(){
 		$this->tables = DB::connection($this->conn)->select("SELECT table_schema || '.' || table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema');");
 	}
+
 	// get all fields properties
 	private function mysqlTable($table){
-		$this->table = DB::select("SELECT column_name as name, lower(is_nullable) as nullable  from information_schema.columns where table_name = '".$table."'");
+		$this->table = DB::select("SELECT column_name as name, lower(is_nullable) as nullable from information_schema.columns where table_name = '".$table."'");
 	}
+
 	// get all fields properties
 	private function pgsqlTable($table){
 		$this->table = DB::select("SELECT column_name as name, lower(is_nullable) as nullable FROM information_schema.columns WHERE table_name='{$table}'");
 	}
+
 	// get all fields properties in table
 	public function getTableProp($table){
 		$this->getDriver();
@@ -57,6 +62,7 @@ class DbSettings {
 		return $grouped->toArray();
 
 	}
+
 	// get all table in database
 	public function getTables(){
 		$this->getDriver();
